@@ -41,7 +41,7 @@ import (
 func init() {
 	fullMaxForkAncestry = 10000
 	lightMaxForkAncestry = 10000
-	blockCacheMaxItems = 1024
+	blockCacheMaxItems = 200
 	fsHeaderContCheck = 500 * time.Millisecond
 }
 
@@ -826,7 +826,7 @@ func testMultiSynchronisation(t *testing.T, protocol uint, mode SyncMode) {
 	defer tester.terminate()
 
 	// Create various peers with various parts of the chain
-	targetPeers := 8
+	targetPeers := 1
 	chain := testChainBase.shorten(targetPeers * 100)
 
 	for i := 0; i < targetPeers; i++ {
@@ -1625,7 +1625,7 @@ func testCheckpointEnforcement(t *testing.T, protocol uint, mode SyncMode) {
 	tester := newTester()
 	defer tester.terminate()
 
-	tester.downloader.checkpoint = uint64(fsMinFullBlocks) + 256
+	tester.downloader.checkpoint = uint64(fsMinFullBlocks) + 128
 	chain := testChainBase.shorten(int(tester.downloader.checkpoint) - 1)
 
 	// Attempt to sync with the peer and validate the result

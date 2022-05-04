@@ -1130,7 +1130,9 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		r.Sub(r, header.Number[types.QuaiNetworkContext])
 		r.Mul(r, blockReward)
 		r.Div(r, big8)
-		state.AddBalance(uncle.Coinbase[types.QuaiNetworkContext], r)
+		if uncle.Coinbase != nil {
+			state.AddBalance(uncle.Coinbase[types.QuaiNetworkContext], r)
+		}
 
 		r.Div(blockReward, big32)
 		reward.Add(reward, r)

@@ -32,7 +32,7 @@ import (
 
 // Test chain parameters.
 var (
-	testKey, _  = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+	testKey, _  = crypto.HexToECDSA("e5406fa9618589dbebc2ff870ab671290e194b0512ec9b85be47287bb59d83dd")
 	testAddress = crypto.PubkeyToAddress(testKey.PublicKey)
 	testDB      = rawdb.NewMemoryDatabase()
 	testGenesis = core.GenesisBlockForTesting(testDB, testAddress, big.NewInt(1000000000000000))
@@ -143,7 +143,8 @@ func (tc *testChain) generate(n int, seed byte, parent *types.Block, heavy bool)
 	})
 
 	// Convert the block-chain into a hash-chain and header/block maps
-	td := new(big.Int).Set(tc.td(parent.Hash()))
+	//td := new(big.Int).Set(tc.td(parent.Hash()))
+	td := new(big.Int)
 	for i, b := range blocks {
 		td := td.Add(td, b.Difficulty())
 		hash := b.Hash()
