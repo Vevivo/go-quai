@@ -73,7 +73,7 @@ type chainSyncer struct {
 type chainSyncOp struct {
 	mode downloader.SyncMode
 	peer *eth.Peer
-	td   *big.Int
+	td   []*big.Int
 	head common.Hash
 }
 
@@ -167,7 +167,7 @@ func (cs *chainSyncer) nextSyncOp() *chainSyncOp {
 		mode = downloader.SnapSync
 	}
 	op := peerToSyncOp(mode, peer)
-	if op.td.Cmp(ourTD) <= 0 {
+	if cs.handler.chain.HLCR(op.td, ourTD) {
 		return nil // We're in sync.
 	}
 	return op
@@ -178,7 +178,7 @@ func peerToSyncOp(mode downloader.SyncMode, p *eth.Peer) *chainSyncOp {
 	return &chainSyncOp{mode: mode, peer: p, td: peerTD, head: peerHead}
 }
 
-func (cs *chainSyncer) modeAndLocalHead() (downloader.SyncMode, *big.Int) {
+func (cs *chainSyncer) modeAndLocalHead() (downloader.SyncMode, []*big.Int) {
 	// If we're in fast sync mode, return that directly
 	if atomic.LoadUint32(&cs.handler.fastSync) == 1 {
 		block := cs.handler.chain.CurrentFastBlock()
@@ -256,7 +256,7 @@ func (h *handler) doSync(op *chainSyncOp) error {
 		// scenario will most often crop up in private and hackathon networks with
 		// degenerate connectivity, but it should be healthy for the mainnet too to
 		// more reliably update peers or the local TD state.
-		extBlocks, err := h.chain.GetExternalBlocks(head.Header())
+		extBlocks, err := h.chain.GetLinkExternalBlocks(head.Header())
 		if err != nil {
 			log.Info("Error sending external blocks to peer", "err", err)
 		} else {

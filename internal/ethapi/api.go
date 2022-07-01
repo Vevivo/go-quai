@@ -34,7 +34,6 @@ import (
 	"github.com/spruce-solutions/go-quai/common/hexutil"
 	"github.com/spruce-solutions/go-quai/common/math"
 	"github.com/spruce-solutions/go-quai/consensus/clique"
-	"github.com/spruce-solutions/go-quai/consensus/ethash"
 	"github.com/spruce-solutions/go-quai/core"
 	"github.com/spruce-solutions/go-quai/core/state"
 	"github.com/spruce-solutions/go-quai/core/types"
@@ -1207,29 +1206,34 @@ func FormatLogs(logs []vm.StructLog) []StructLogRes {
 func RPCMarshalEthHeader(head *types.Header) map[string]interface{} {
 	context := types.QuaiNetworkContext
 	bloom := types.Bloom{}
-	if len(head.Bloom) > types.ContextDepth-1 {
+	if len(head.Bloom) > len(params.FullerOntology) {
 		bloom = head.Bloom[context]
 	}
+	coinbase := common.Address{}
+	if head.Coinbase != nil && len(head.Coinbase) > len(params.FullerOntology) {
+		coinbase = head.Coinbase[context]
+	}
+
 	result := map[string]interface{}{
-		"number":           head.Number[context],
+		"number":           fmt.Sprintf("0x%x", head.Number[context]),
 		"hash":             head.Hash(),
 		"parentHash":       head.ParentHash[context],
 		"nonce":            head.Nonce,
+		"extraData":        head.Extra[context],
 		"sha3Uncles":       head.UncleHash[context],
 		"logsBloom":        bloom,
 		"stateRoot":        head.Root[context],
-		"miner":            head.Coinbase[context],
+		"miner":            coinbase,
 		"difficulty":       head.Difficulty[context],
-		"totalDifficulty":  head.NetworkDifficulty[context],
-		"extraData":        head.Extra[context],
 		"size":             hexutil.Uint64(head.Size()),
 		"gasLimit":         head.GasLimit[context],
 		"gasUsed":          head.GasUsed[context],
 		"timestamp":        head.Time,
 		"transactionsRoot": head.TxHash[context],
+		"receiptsRoot":     head.ReceiptHash[context],
 	}
 	if head.BaseFee[context] != nil {
-		result["baseFeePerGas"] = head.BaseFee[context]
+		result["baseFeePerGas"] = (*hexutil.Big)(head.BaseFee[context])
 	}
 	return result
 }
@@ -1301,7 +1305,7 @@ func RPCMarshalReceipt(receipt *types.Receipt) (map[string]interface{}, error) {
 // a `PublicBlockchainAPI`.
 func (s *PublicBlockChainAPI) rpcMarshalEthHeader(ctx context.Context, header *types.Header) map[string]interface{} {
 	fields := RPCMarshalEthHeader(header)
-	fields["totalDifficulty"] = (*hexutil.Big)(s.b.GetTd(ctx, header.Hash()))
+	fields["totalDifficulty"] = (*hexutil.Big)(s.b.GetTd(ctx, header.Hash())[types.QuaiNetworkContext])
 	return fields
 }
 
@@ -1311,7 +1315,7 @@ func (s *PublicBlockChainAPI) rpcMarshalEthBlock(ctx context.Context, b *types.B
 		return nil, err
 	}
 	if inclTx {
-		fields["totalDifficulty"] = (*hexutil.Big)(s.b.GetTd(ctx, b.Hash()))
+		fields["totalDifficulty"] = (*hexutil.Big)(s.b.GetTd(ctx, b.Hash())[types.QuaiNetworkContext])
 	}
 	return fields, err
 }
@@ -1324,7 +1328,7 @@ func (s *PublicBlockChainAPI) rpcMarshalBlockWithReceipts(ctx context.Context, b
 		return nil, err
 	}
 	if inclTx {
-		fields["totalDifficulty"] = (*hexutil.Big)(s.b.GetTd(ctx, b.Hash()))
+		fields["totalDifficulty"] = (*hexutil.Big)(s.b.GetTd(ctx, b.Hash())[types.QuaiNetworkContext])
 	}
 	fieldReceipts := make([]interface{}, len(receipts))
 	for i, receipt := range receipts {
@@ -2078,15 +2082,6 @@ func (api *PublicDebugAPI) PrintBlock(ctx context.Context, number uint64) (strin
 		return "", fmt.Errorf("block #%d not found", number)
 	}
 	return spew.Sdump(block), nil
-}
-
-// SeedHash retrieves the seed hash of a block.
-func (api *PublicDebugAPI) SeedHash(ctx context.Context, number uint64) (string, error) {
-	block, _ := api.b.BlockByNumber(ctx, rpc.BlockNumber(number))
-	if block == nil {
-		return "", fmt.Errorf("block #%d not found", number)
-	}
-	return fmt.Sprintf("0x%x", ethash.SeedHash(number)), nil
 }
 
 // PrivateDebugAPI is the collection of Ethereum APIs exposed over the private

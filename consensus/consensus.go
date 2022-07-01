@@ -48,8 +48,11 @@ type ChainHeaderReader interface {
 	// GetExternalBlocks retrieve all external blocks for a header.
 	GetExternalBlocks(header *types.Header) ([]*types.ExternalBlock, error)
 
+	// GetExternalBlocks retrieve all external link blocks for a header.
+	GetLinkExternalBlocks(header *types.Header) ([]*types.ExternalBlock, error)
+
 	// GetExternalBlock retrieves an external block header by its hash and context.
-	GetExternalBlock(hash common.Hash, number uint64, context uint64) (*types.ExternalBlock, error)
+	GetExternalBlock(hash common.Hash, number uint64, location []byte, context uint64) (*types.ExternalBlock, error)
 
 	// QueueAndRetrieveExtBlocks passes external blocks to the queue and returns the amount available for this block
 	QueueAndRetrieveExtBlocks(externalBlocks []*types.ExternalBlock, header *types.Header) []*types.ExternalBlock
@@ -59,6 +62,12 @@ type ChainHeaderReader interface {
 
 	// GetGasUsedInChain gets the number value of gas used in the chain up until a certain number.
 	GetGasUsedInChain(block *types.Block, length int) int64
+
+	// CheckContextchecks to make sure the range of a context or order is valid
+	CheckContext(context int) error
+
+	// CheckLocationRange checks to make sure the range of r and z are valid
+	CheckLocationRange(location []byte) error
 }
 
 // ChainReader defines a small collection of methods needed to access the local
@@ -115,23 +124,23 @@ type Engine interface {
 	// GetExternalBlocks retrieves all valid external blocks from external chains
 	GetExternalBlocks(chain ChainHeaderReader, header *types.Header, logging bool) ([]*types.ExternalBlock, error)
 
-	// GetCoincidentHeader retrieves the furthest coincident header back.
-	GetCoincidentHeader(chain ChainHeaderReader, context int, header *types.Header) (*types.Header, int)
+	// GetCoincidentAtOrder retrieves the coincident header.
+	GetCoincidentAtOrder(chain ChainHeaderReader, context int, expectedOrder int, header *types.Header) (*types.Header, error)
 
 	// CheckPrevHeaderCoincident checks if previous header is a coincident header.
 	CheckPrevHeaderCoincident(chain ChainHeaderReader, context int, header *types.Header) (int, error)
 
-	// GetDifficultyContext retrieves the difficulty at a given header
-	GetDifficultyContext(chain ChainHeaderReader, header *types.Header, context int) (int, error)
+	// This function determines the difficulty order of a block
+	GetDifficultyOrder(header *types.Header) (int, error)
 
-	// GetStopHash retrieves the stop hash for tracing of blocks in a trace branch.
-	GetStopHash(chain ChainHeaderReader, difficultyContext int, originalContext int, startingHeader *types.Header) (common.Hash, int)
+	// TraceBranches recursively traces region and zone branches to find external blocks.
+	TraceBranches(chain ChainHeaderReader, header *types.Header, context int, originalContext int, originalLocation []byte) ([]*types.ExternalBlock, error)
 
-	// PrimeTraceBranch recursively traces branches to find.
-	PrimeTraceBranch(chain ChainHeaderReader, header *types.Header, context int, stopHash common.Hash, originalContext int, originalLocation []byte) ([]*types.ExternalBlock, error)
+	// GetLinkExternalBlocks links every block to the correct previous block
+	GetLinkExternalBlocks(chain ChainHeaderReader, header *types.Header, logging bool) ([]*types.ExternalBlock, error)
 
-	// RegionTraceBranch recursively traces region branches to find.
-	RegionTraceBranch(chain ChainHeaderReader, header *types.Header, context int, stopHash common.Hash, originalContext int, originalLocation []byte) ([]*types.ExternalBlock, error)
+	// PreviousCoincidentOnPath searches the path for a block of specified order in the specified slice
+	PreviousCoincidentOnPath(chain ChainHeaderReader, header *types.Header, slice []byte, order, path int) (*types.Header, error)
 
 	// Seal generates a new sealing request for the given input block and pushes
 	// the result into the given channel.

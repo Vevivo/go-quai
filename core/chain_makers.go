@@ -17,6 +17,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -311,6 +312,18 @@ func makeBlockChain(parent *types.Block, n int, engine consensus.Engine, db ethd
 	return blocks
 }
 
+// struct for notation
+type blockGenSpec struct {
+	numbers    [3]int    // prime idx, region idx, zone idx
+	parentTags [3]string // (optionally) Override the parents to point to tagged blocks. Empty strings are ignored.
+	tag        string    // (optionally) Give this block a named tag. Empty strings are ignored.
+}
+
+// Generate blocks to form a network of chains
+func GenerateNetworkBlocks(graph [3][3][]*blockGenSpec) ([]*types.Block, error) {
+	return nil, errors.New("Not implemented")
+}
+
 type fakeChainReader struct {
 	config *params.ChainConfig
 }
@@ -325,7 +338,7 @@ func (cr *fakeChainReader) GetHeaderByNumber(number uint64) *types.Header       
 func (cr *fakeChainReader) GetHeaderByHash(hash common.Hash) *types.Header          { return nil }
 func (cr *fakeChainReader) GetHeader(hash common.Hash, number uint64) *types.Header { return nil }
 func (cr *fakeChainReader) GetBlock(hash common.Hash, number uint64) *types.Block   { return nil }
-func (cr *fakeChainReader) GetExternalBlock(hash common.Hash, number uint64, context uint64) (*types.ExternalBlock, error) {
+func (cr *fakeChainReader) GetExternalBlock(hash common.Hash, number uint64, location []byte, context uint64) (*types.ExternalBlock, error) {
 	return nil, nil
 }
 func (cr *fakeChainReader) QueueAndRetrieveExtBlocks(blocks []*types.ExternalBlock, header *types.Header) []*types.ExternalBlock {
@@ -339,4 +352,27 @@ func (cr *fakeChainReader) GetGasUsedInChain(block *types.Block, length int) int
 
 func (cr *fakeChainReader) GetExternalBlocks(header *types.Header) ([]*types.ExternalBlock, error) {
 	return nil, nil
+}
+
+func (cr *fakeChainReader) GetLinkExternalBlocks(header *types.Header) ([]*types.ExternalBlock, error) {
+	return nil, nil
+}
+
+// CheckContext checks to make sure the range of a context or order is valid
+func (cr *fakeChainReader) CheckContext(context int) error {
+	if context < 0 || context > len(params.FullerOntology) {
+		return errors.New("the provided path is outside the allowable range")
+	}
+	return nil
+}
+
+// CheckLocationRange checks to make sure the range of r and z are valid
+func (cr *fakeChainReader) CheckLocationRange(location []byte) error {
+	if int(location[0]) < 1 || int(location[0]) > params.FullerOntology[0] {
+		return errors.New("the provided location is outside the allowable region range")
+	}
+	if int(location[1]) < 1 || int(location[1]) > params.FullerOntology[1] {
+		return errors.New("the provided location is outside the allowable zone range")
+	}
+	return nil
 }

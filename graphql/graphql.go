@@ -638,14 +638,6 @@ func (b *Block) Nonce(ctx context.Context) (hexutil.Bytes, error) {
 	return header.Nonce[:], nil
 }
 
-func (b *Block) MixHash(ctx context.Context) (common.Hash, error) {
-	header, err := b.resolveHeader(ctx)
-	if err != nil {
-		return common.Hash{}, err
-	}
-	return header.MixDigest, nil
-}
-
 func (b *Block) TransactionsRoot(ctx context.Context) ([]common.Hash, error) {
 	header, err := b.resolveHeader(ctx)
 	if err != nil {
@@ -729,7 +721,8 @@ func (b *Block) TotalDifficulty(ctx context.Context) (hexutil.Big, error) {
 		}
 		h = header.Hash()
 	}
-	td := b.backend.GetTd(ctx, h)
+	tempTd := b.backend.GetTd(ctx, h)
+	td := tempTd[types.QuaiNetworkContext]
 	if td == nil {
 		return hexutil.Big{}, fmt.Errorf("total difficulty not found %x", b.hash)
 	}

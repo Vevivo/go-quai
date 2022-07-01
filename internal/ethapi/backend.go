@@ -64,13 +64,13 @@ type Backend interface {
 	StateAndHeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*state.StateDB, *types.Header, error)
 	StateAndHeaderByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*state.StateDB, *types.Header, error)
 	GetReceipts(ctx context.Context, hash common.Hash) (types.Receipts, error)
-	GetTd(ctx context.Context, hash common.Hash) *big.Int
+	GetTd(ctx context.Context, hash common.Hash) []*big.Int
 	GetEVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header, vmConfig *vm.Config) (*vm.EVM, func() error, error)
 	SubscribeChainEvent(ch chan<- core.ChainEvent) event.Subscription
 	SubscribeChainHeadEvent(ch chan<- core.ChainHeadEvent) event.Subscription
 	SubscribeChainUncleEvent(ch chan<- *types.Header) event.Subscription
 	InsertBlock(ctx context.Context, block *types.Block) (int, error)
-	ReOrgRollBack(header *types.Header) error
+	ReOrgRollBack(header *types.Header, validHeaders []*types.Header, invalidHeaders []*types.Header) error
 	PendingBlockAndReceipts() (*types.Block, types.Receipts)
 	AddExternalBlock(block *types.ExternalBlock) error
 	EventMux() *event.TypeMux
@@ -97,6 +97,7 @@ type Backend interface {
 	SubscribePendingBlockEvent(ch chan<- *types.Header) event.Subscription
 	SubscribeRemovedLogsEvent(ch chan<- core.RemovedLogsEvent) event.Subscription
 	SubscribeReOrgEvent(ch chan<- core.ReOrgRollup) event.Subscription
+	SubscribeMissingExternalBlockEvent(ch chan<- core.MissingExternalBlock) event.Subscription
 
 	ChainConfig() *params.ChainConfig
 	Engine() consensus.Engine

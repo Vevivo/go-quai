@@ -16,7 +16,10 @@
 
 package params
 
-import "math/big"
+import (
+	"math"
+	"math/big"
+)
 
 const (
 	GasLimitBoundDivisor uint64 = 256     // The bound divisor of the gas limit, used in update calculations.
@@ -157,15 +160,38 @@ const (
 	// up to half the consumed gas could be refunded. Redefined as 1/5th in EIP-3529
 	RefundQuotient        uint64 = 2
 	RefundQuotientEIP3529 uint64 = 5
+
+	ExternalBlockLookupLimit int   = 75 // Amount of iterations to lookup external block
+	ExternalBlockLookupDelay int64 = 25 // Delay time (ms) for external block lookup during polling
 )
 
 // Gas discount table for BLS12-381 G1 and G2 multi exponentiation operations
 var Bls12381MultiExpDiscountTable = [128]uint64{1200, 888, 764, 641, 594, 547, 500, 453, 438, 423, 408, 394, 379, 364, 349, 334, 330, 326, 322, 318, 314, 310, 306, 302, 298, 294, 289, 285, 281, 277, 273, 269, 268, 266, 265, 263, 262, 260, 259, 257, 256, 254, 253, 251, 250, 248, 247, 245, 244, 242, 241, 239, 238, 236, 235, 233, 232, 231, 229, 228, 226, 225, 223, 222, 221, 220, 219, 219, 218, 217, 216, 216, 215, 214, 213, 213, 212, 211, 211, 210, 209, 208, 208, 207, 206, 205, 205, 204, 203, 202, 202, 201, 200, 199, 199, 198, 197, 196, 196, 195, 194, 193, 193, 192, 191, 191, 190, 189, 188, 188, 187, 186, 185, 185, 184, 183, 182, 182, 181, 180, 179, 179, 178, 177, 176, 176, 175, 174}
 
 var (
-	DifficultyBoundDivisor = []*big.Int{big.NewInt(240), big.NewInt(650), big.NewInt(2048)} // The bound divisor of the difficulty, used in the update calculations. Based off of MxN. Divisor should respect hierarchical timing.
-	GenesisDifficulty      = big.NewInt(131072)                                             // Difficulty of the Genesis block.
-	MinimumDifficulty      = big.NewInt(131072)                                             // The minimum that the difficulty may ever be.
-	DurationLimits         = []*big.Int{big.NewInt(900), big.NewInt(300), big.NewInt(10)}   // The decision boundary on the blocktime duration used to determine whether difficulty should go up or not.
-	TargetUncles           = []int{10, 30, 100}                                             // The bound divisor of the gas limit, used in update calculations.
+	DifficultyBoundDivisor = []*big.Int{big.NewInt(240), big.NewInt(650), big.NewInt(2048)}         // The bound divisor of the difficulty, used in the update calculations. Based off of MxN. Divisor should respect hierarchical timing.
+	GenesisDifficulty      = []*big.Int{big.NewInt(531072), big.NewInt(431072), big.NewInt(131072)} // Difficulty of the Genesis block.
+	MinimumDifficulty      = []*big.Int{big.NewInt(531072), big.NewInt(431072), big.NewInt(131072)} // The minimum that the difficulty may ever be.
+	DurationLimits         = []*big.Int{big.NewInt(900), big.NewInt(300), big.NewInt(10)}           // The decision boundary on the blocktime duration used to determine whether difficulty should go up or not.
+	TargetUncles           = []int{10, 30, 100}                                                     // The bound divisor of the gas limit, used in update calculations.
+)
+
+// Ontology defines the current Quai Network ontology
+var (
+	PRIME  = 0
+	REGION = 1
+	ZONE   = 2
+
+	// Fork blocks; necessary for retrieving MapContext through header/block methods
+	FullerMapContext = big.NewInt(0)           // Fork = 0 meaning initial ontology
+	TuringMapContext = big.NewInt(math.MaxInt) // maxed out for now
+	LovelaMapContext = big.NewInt(math.MaxInt) // maxed out for now
+
+	// Named ontologies
+	// This defines the number of allowed regions (r) and zones (z) in the hierarchy (r,z)
+	FullerOntology   = []int{3, 3} // named after Buckminster Fuller
+	TuringOntology   = []int{4, 4} // named after Alan Turing
+	LovelaceOntology = []int{5, 5} // named after Ada Lovelace
+	// future ontology expansion markers go here
+	QuaiOntologies = [][]int{FullerOntology, TuringOntology, LovelaceOntology}
 )

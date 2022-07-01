@@ -280,10 +280,6 @@ func (c *Clique) verifyHeader(chain consensus.ChainHeaderReader, header *types.H
 	if checkpoint && signersBytes%common.AddressLength != 0 {
 		return errInvalidCheckpointSigners
 	}
-	// Ensure that the mix digest is zero as we don't have fork protection currently
-	if header.MixDigest != (common.Hash{}) {
-		return errInvalidMixDigest
-	}
 	// Ensure that the block doesn't contain any uncles which are meaningless in PoA
 	if header.UncleHash[types.QuaiNetworkContext] != uncleHash {
 		return errInvalidUncleHash
@@ -558,9 +554,6 @@ func (c *Clique) Prepare(chain consensus.ChainHeaderReader, header *types.Header
 	}
 	header.Extra[types.QuaiNetworkContext] = append(header.Extra[types.QuaiNetworkContext], make([]byte, extraSeal)...)
 
-	// Mix digest is reserved for now, set to empty
-	header.MixDigest = common.Hash{}
-
 	// Ensure the timestamp has the correct delay
 	parent := chain.GetHeader(header.ParentHash[types.QuaiNetworkContext], number-1)
 	if parent == nil {
@@ -596,14 +589,29 @@ func (c *Clique) GetExternalBlocks(chain consensus.ChainHeaderReader, header *ty
 	return make([]*types.ExternalBlock, 0), nil
 }
 
+// GetExternalBlocks traces all available branches to find external blocks
+func (c *Clique) GetLinkExternalBlocks(chain consensus.ChainHeaderReader, header *types.Header, logging bool) ([]*types.ExternalBlock, error) {
+	return make([]*types.ExternalBlock, 0), nil
+}
+
+// PreviousCoincidentOnPath searches the path for a block of specified order in the specified slice
+func (c *Clique) PreviousCoincidentOnPath(chain consensus.ChainHeaderReader, header *types.Header, slice []byte, order, path int) (*types.Header, error) {
+	return nil, nil
+}
+
 // GetCoincidentHeader retrieves the furthest coincident header back
-func (c *Clique) GetDifficultyContext(chain consensus.ChainHeaderReader, header *types.Header, context int) (int, error) {
+func (c *Clique) GetDifficultyOrder(header *types.Header) (int, error) {
 	return 0, nil
 }
 
 // GetCoincidentHeader retrieves the furthest coincident header back
 func (c *Clique) GetCoincidentHeader(chain consensus.ChainHeaderReader, context int, header *types.Header) (*types.Header, int) {
 	return nil, 0
+}
+
+// GetCoincidentHeader retrieves the furthest coincident header back
+func (c *Clique) GetCoincidentAtOrder(chain consensus.ChainHeaderReader, context int, expectedOrder int, header *types.Header) (*types.Header, error) {
+	return nil, nil
 }
 
 // CheckPrevHeaderCoincident checks if previous header is a coincident header.
@@ -616,12 +624,8 @@ func (c *Clique) GetStopHash(chain consensus.ChainHeaderReader, difficultyContex
 	return common.Hash{}, 0
 }
 
-// TraceBranch recursively traces branches to find
-func (c *Clique) PrimeTraceBranch(chain consensus.ChainHeaderReader, header *types.Header, context int, stopHash common.Hash, originalContext int, originalLocation []byte) ([]*types.ExternalBlock, error) {
-	return make([]*types.ExternalBlock, 0), nil
-}
-
-func (c *Clique) RegionTraceBranch(chain consensus.ChainHeaderReader, header *types.Header, context int, stopHash common.Hash, originalContext int, originalLocation []byte) ([]*types.ExternalBlock, error) {
+// TraceBranches recursively traces branches to find external blocks.
+func (c *Clique) TraceBranches(chain consensus.ChainHeaderReader, header *types.Header, context int, originalContext int, originalLocation []byte) ([]*types.ExternalBlock, error) {
 	return make([]*types.ExternalBlock, 0), nil
 }
 
@@ -783,7 +787,6 @@ func encodeSigHeader(w io.Writer, header *types.Header) {
 		header.GasUsed,
 		header.Time,
 		header.Extra[types.QuaiNetworkContext][:len(header.Extra[types.QuaiNetworkContext])-crypto.SignatureLength], // Yes, this will panic if extra is too short
-		header.MixDigest,
 		header.Nonce,
 	}
 	if header.BaseFee != nil {

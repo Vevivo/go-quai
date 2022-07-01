@@ -18,6 +18,7 @@ package params
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -27,12 +28,12 @@ import (
 
 // Genesis hashes to enforce below configs on.
 var (
-	MainnetPrimeGenesisHash  = common.HexToHash("0x7b4490b9d85546cb8ef5d43316bc7a6d78ea5ec7ae3ea9bc6fd16bcc3bcc279f")
-	MainnetRegionGenesisHash = common.HexToHash("0x5942bcc68eac3b1ba8be42864ca11972b870ad931edd0e463cc54ffd40058477")
-	MainnetZoneGenesisHash   = common.HexToHash("0xd9b9ed9fe4ae892542aae9bb1d42ea14f0fa5f32fffef48da58f149ce20bf297")
-	RopstenPrimeGenesisHash  = common.HexToHash("0xdd56672364a589f747b788db90ce749a4b2fd7232811448a5007758dd1be66bc")
-	RopstenRegionGenesisHash = common.HexToHash("0xf08581e49395806472eee0a3bb9e1db56c53ea55c306a070f91053a9b310154f")
-	RopstenZoneGenesisHash   = common.HexToHash("0xad8733f0fbeb410396d09db8f1f9fefbf45406ad6da8e7dae648f91d71b86d11")
+	MainnetPrimeGenesisHash  = common.HexToHash("0x8dd9cfdf62bc5d7a0401d2b525a43ddde3f3392e41b443be1628057193812f0e")
+	MainnetRegionGenesisHash = common.HexToHash("0x8dd9cfdf62bc5d7a0401d2b525a43ddde3f3392e41b443be1628057193812f0e")
+	MainnetZoneGenesisHash   = common.HexToHash("0x8dd9cfdf62bc5d7a0401d2b525a43ddde3f3392e41b443be1628057193812f0e")
+	RopstenPrimeGenesisHash  = common.HexToHash("0x9c0d89a5294e4635a49f6d4c9f9e1a361cb76bfffa71be2ff01a64f3c5dd0dcc")
+	RopstenRegionGenesisHash = common.HexToHash("0x9c0d89a5294e4635a49f6d4c9f9e1a361cb76bfffa71be2ff01a64f3c5dd0dcc")
+	RopstenZoneGenesisHash   = common.HexToHash("0x9c0d89a5294e4635a49f6d4c9f9e1a361cb76bfffa71be2ff01a64f3c5dd0dcc")
 	RopstenGenesisHash       = common.HexToHash("0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d")
 	RinkebyGenesisHash       = common.HexToHash("0x6341fd3daf94b748c72ced5a5b26028f2474f5f00d824504e4fa37a75767e177")
 	GoerliGenesisHash        = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
@@ -62,7 +63,7 @@ var (
 		ChainID:             big.NewInt(9000),
 		Context:             0,
 		Location:            []byte{0, 0},
-		MapContext:          []int{3, 3, 3},
+		FullerMapContext:    big.NewInt(0),
 		Ethash:              new(EthashConfig),
 		HomesteadBlock:      big.NewInt(0),
 		EIP150Block:         big.NewInt(0),
@@ -84,7 +85,7 @@ var (
 			ChainID:             big.NewInt(9100),
 			Context:             1,
 			Location:            []byte{1, 0},
-			MapContext:          []int{3, 3, 3},
+			FullerMapContext:    big.NewInt(0),
 			Ethash:              new(EthashConfig),
 			HomesteadBlock:      big.NewInt(0),
 			EIP150Block:         big.NewInt(0),
@@ -104,7 +105,7 @@ var (
 			ChainID:             big.NewInt(9200),
 			Context:             1,
 			Location:            []byte{2, 0},
-			MapContext:          []int{3, 3, 3},
+			FullerMapContext:    big.NewInt(0),
 			Ethash:              new(EthashConfig),
 			HomesteadBlock:      big.NewInt(0),
 			EIP150Block:         big.NewInt(0),
@@ -124,7 +125,7 @@ var (
 			ChainID:             big.NewInt(9300),
 			Context:             1,
 			Location:            []byte{3, 0},
-			MapContext:          []int{3, 3, 3},
+			FullerMapContext:    big.NewInt(0),
 			Ethash:              new(EthashConfig),
 			HomesteadBlock:      big.NewInt(0),
 			EIP150Block:         big.NewInt(0),
@@ -148,7 +149,7 @@ var (
 				ChainID:             big.NewInt(9101),
 				Context:             2,
 				Location:            []byte{1, 1},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -168,7 +169,7 @@ var (
 				ChainID:             big.NewInt(9102),
 				Context:             2,
 				Location:            []byte{1, 2},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -188,6 +189,7 @@ var (
 				ChainID:             big.NewInt(9103),
 				Context:             2,
 				Location:            []byte{1, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -208,7 +210,7 @@ var (
 				ChainID:             big.NewInt(9201),
 				Context:             2,
 				Location:            []byte{2, 1},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -228,7 +230,7 @@ var (
 				ChainID:             big.NewInt(9202),
 				Context:             2,
 				Location:            []byte{2, 2},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -248,7 +250,7 @@ var (
 				ChainID:             big.NewInt(9203),
 				Context:             2,
 				Location:            []byte{2, 3},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -269,7 +271,7 @@ var (
 				ChainID:             big.NewInt(9301),
 				Context:             2,
 				Location:            []byte{3, 1},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -289,7 +291,7 @@ var (
 				ChainID:             big.NewInt(9302),
 				Context:             2,
 				Location:            []byte{3, 2},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -309,7 +311,7 @@ var (
 				ChainID:             big.NewInt(9303),
 				Context:             2,
 				Location:            []byte{3, 3},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -333,7 +335,7 @@ var (
 		ChainID:             big.NewInt(12000),
 		Context:             0,
 		Location:            []byte{0, 0},
-		MapContext:          []int{3, 3, 3},
+		FullerMapContext:    big.NewInt(0),
 		Ethash:              new(EthashConfig),
 		HomesteadBlock:      big.NewInt(0),
 		EIP150Block:         big.NewInt(0),
@@ -355,7 +357,7 @@ var (
 			ChainID:             big.NewInt(12100),
 			Context:             1,
 			Location:            []byte{1, 0},
-			MapContext:          []int{3, 3, 3},
+			FullerMapContext:    big.NewInt(0),
 			Ethash:              new(EthashConfig),
 			HomesteadBlock:      big.NewInt(0),
 			EIP150Block:         big.NewInt(0),
@@ -375,7 +377,7 @@ var (
 			ChainID:             big.NewInt(12200),
 			Context:             1,
 			Location:            []byte{2, 0},
-			MapContext:          []int{3, 3, 3},
+			FullerMapContext:    big.NewInt(0),
 			Ethash:              new(EthashConfig),
 			HomesteadBlock:      big.NewInt(0),
 			EIP150Block:         big.NewInt(0),
@@ -395,7 +397,7 @@ var (
 			ChainID:             big.NewInt(12300),
 			Context:             1,
 			Location:            []byte{3, 0},
-			MapContext:          []int{3, 3, 3},
+			FullerMapContext:    big.NewInt(0),
 			Ethash:              new(EthashConfig),
 			HomesteadBlock:      big.NewInt(0),
 			EIP150Block:         big.NewInt(0),
@@ -419,7 +421,7 @@ var (
 				ChainID:             big.NewInt(12101),
 				Context:             2,
 				Location:            []byte{1, 1},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -439,7 +441,7 @@ var (
 				ChainID:             big.NewInt(12102),
 				Context:             2,
 				Location:            []byte{1, 2},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -459,7 +461,7 @@ var (
 				ChainID:             big.NewInt(12103),
 				Context:             2,
 				Location:            []byte{1, 3},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -480,7 +482,7 @@ var (
 				ChainID:             big.NewInt(12201),
 				Context:             2,
 				Location:            []byte{2, 1},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -500,7 +502,7 @@ var (
 				ChainID:             big.NewInt(12202),
 				Context:             2,
 				Location:            []byte{2, 2},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -520,7 +522,7 @@ var (
 				ChainID:             big.NewInt(12203),
 				Context:             2,
 				Location:            []byte{2, 3},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -541,7 +543,7 @@ var (
 				ChainID:             big.NewInt(12301),
 				Context:             2,
 				Location:            []byte{3, 1},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -561,7 +563,7 @@ var (
 				ChainID:             big.NewInt(12302),
 				Context:             2,
 				Location:            []byte{3, 2},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -581,7 +583,7 @@ var (
 				ChainID:             big.NewInt(12303),
 				Context:             2,
 				Location:            []byte{3, 3},
-				MapContext:          []int{3, 3, 3},
+				FullerMapContext:    big.NewInt(0),
 				Ethash:              new(EthashConfig),
 				HomesteadBlock:      big.NewInt(0),
 				EIP150Block:         big.NewInt(0),
@@ -609,6 +611,7 @@ var (
 	// RopstenChainConfig contains the chain parameters to run a node on the Ropsten test network.
 	RopstenChainConfig = &ChainConfig{
 		ChainID:             big.NewInt(3),
+		FullerMapContext:    big.NewInt(0),
 		HomesteadBlock:      big.NewInt(0),
 		EIP150Block:         big.NewInt(0),
 		EIP150Hash:          common.HexToHash("0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d"),
@@ -651,16 +654,55 @@ var (
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), 0, []byte{0, 0}, []int{3, 3, 3}, big.NewInt(0), big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil, nil}
+	AllEthashProtocolChanges = &ChainConfig{
+		ChainID:             big.NewInt(1337),
+		Context:             0,
+		Location:            []byte{0, 0},
+		HomesteadBlock:      big.NewInt(0),
+		EIP150Block:         big.NewInt(0),
+		EIP150Hash:          common.Hash{},
+		EIP155Block:         big.NewInt(0),
+		EIP158Block:         big.NewInt(0),
+		ByzantiumBlock:      big.NewInt(0),
+		ConstantinopleBlock: big.NewInt(0),
+		PetersburgBlock:     big.NewInt(0),
+		IstanbulBlock:       big.NewInt(0),
+		MuirGlacierBlock:    big.NewInt(0),
+		BerlinBlock:         big.NewInt(0),
+		LondonBlock:         big.NewInt(0),
+		CatalystBlock:       big.NewInt(0),
+		Ethash:              new(EthashConfig),
+		Clique:              nil,
+		GenesisHashes:       nil,
+		FullerMapContext:    big.NewInt(0)}
 
 	// AllCliqueProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the Clique consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), 0, []byte{0, 0}, []int{3, 3, 3}, big.NewInt(0), big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}, nil}
-	TestChainConfig          = &ChainConfig{big.NewInt(1), 0, []byte{0, 0}, []int{3, 3, 3}, big.NewInt(0), big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil, nil}
-	TestRules                = TestChainConfig.Rules(new(big.Int))
+	AllCliqueProtocolChanges = &ChainConfig{
+		ChainID:             big.NewInt(1337),
+		Context:             0,
+		Location:            []byte{0, 0},
+		HomesteadBlock:      big.NewInt(0),
+		EIP150Block:         big.NewInt(0),
+		EIP150Hash:          common.Hash{},
+		ByzantiumBlock:      big.NewInt(0),
+		ConstantinopleBlock: big.NewInt(0),
+		PetersburgBlock:     big.NewInt(0),
+		IstanbulBlock:       big.NewInt(0),
+		MuirGlacierBlock:    big.NewInt(0),
+		BerlinBlock:         big.NewInt(0),
+		LondonBlock:         big.NewInt(0),
+		CatalystBlock:       big.NewInt(0),
+		Ethash:              nil,
+		Clique:              &CliqueConfig{Period: 0, Epoch: 30000},
+		GenesisHashes:       nil,
+		FullerMapContext:    big.NewInt(0)}
+
+	TestChainConfig = &ChainConfig{big.NewInt(1), 0, []byte{0, 0}, big.NewInt(0), big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil, nil, big.NewInt(0)}
+	TestRules       = TestChainConfig.Rules(new(big.Int))
 )
 
 // TrustedCheckpoint represents a set of post-processed trie roots (CHT and
@@ -719,9 +761,8 @@ type CheckpointOracleConfig struct {
 type ChainConfig struct {
 	ChainID *big.Int `json:"chainId"` // chainId identifies the current chain and is used for replay protection
 
-	Context    int    // Context defines the index in which the chain operates at
-	Location   []byte // Location for a given block
-	MapContext []int  // MapContext for structure of the hierarchy
+	Context  int    // Context defines the index in which the chain operates at
+	Location []byte // Location for a given block
 
 	HomesteadBlock *big.Int `json:"homesteadBlock,omitempty"` // Homestead switch block (nil = no fork, 0 = already homestead)
 	// EIP150 implements the Gas price changes (https://github.com/ethereum/EIPs/issues/150)
@@ -747,6 +788,9 @@ type ChainConfig struct {
 
 	// Genesis Hashes
 	GenesisHashes []common.Hash
+
+	// Quai Network Ontology
+	FullerMapContext *big.Int // Block number effective for Fuller Map Context ontology
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.
@@ -779,7 +823,7 @@ func (c *ChainConfig) String() string {
 	default:
 		engine = "unknown"
 	}
-	return fmt.Sprintf("{ChainID: %v Homestead: %v EIP150: %v EIP155: %v EIP158: %v Byzantium: %v Constantinople: %v Petersburg: %v Istanbul: %v, Muir Glacier: %v, Berlin: %v, London: %v, Engine: %v, GenesisHashes: %v}",
+	return fmt.Sprintf("{ChainID: %v Homestead: %v EIP150: %v EIP155: %v EIP158: %v Byzantium: %v Constantinople: %v Petersburg: %v Istanbul: %v, Muir Glacier: %v, Berlin: %v, London: %v, Engine: %v, GenesisHashes: %v, Fuller: %v}",
 		c.ChainID,
 		c.HomesteadBlock,
 		c.EIP150Block,
@@ -794,6 +838,7 @@ func (c *ChainConfig) String() string {
 		c.LondonBlock,
 		engine,
 		c.GenesisHashes,
+		c.FullerMapContext,
 	)
 }
 
@@ -859,6 +904,11 @@ func (c *ChainConfig) IsCatalyst(num *big.Int) bool {
 	return isForked(c.CatalystBlock, num)
 }
 
+// IsFuller returns whether num is either equal to the Merge fork block or greater.
+func (c *ChainConfig) IsFuller(num *big.Int) bool {
+	return isForked(c.FullerMapContext, num)
+}
+
 // CheckCompatible checks whether scheduled fork transitions have been imported
 // with a mismatching chain configuration.
 func (c *ChainConfig) CheckCompatible(newcfg *ChainConfig, height uint64) *ConfigCompatError {
@@ -898,6 +948,7 @@ func (c *ChainConfig) CheckConfigForkOrder() error {
 		{name: "muirGlacierBlock", block: c.MuirGlacierBlock, optional: true},
 		{name: "berlinBlock", block: c.BerlinBlock},
 		{name: "londonBlock", block: c.LondonBlock},
+		{name: "c.FullerMapContext", block: c.FullerMapContext},
 	} {
 		if lastFork.name != "" {
 			// Next one must be higher number
@@ -960,6 +1011,9 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 	}
 	if isForkIncompatible(c.LondonBlock, newcfg.LondonBlock, head) {
 		return newCompatError("London fork block", c.LondonBlock, newcfg.LondonBlock)
+	}
+	if isForkIncompatible(c.FullerMapContext, newcfg.FullerMapContext, head) {
+		return newCompatError("Fuller ontology block", c.FullerMapContext, newcfg.FullerMapContext)
 	}
 	return nil
 }
@@ -1029,6 +1083,7 @@ type Rules struct {
 	IsHomestead, IsEIP150, IsEIP155, IsEIP158               bool
 	IsByzantium, IsConstantinople, IsPetersburg, IsIstanbul bool
 	IsBerlin, IsLondon, IsCatalyst                          bool
+	IsFuller, IsTuring, IsLovelace                          bool
 }
 
 // Rules ensures c's ChainID is not nil.
@@ -1050,6 +1105,7 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 		IsBerlin:         c.IsBerlin(num),
 		IsLondon:         c.IsLondon(num),
 		IsCatalyst:       c.IsCatalyst(num),
+		IsFuller:         c.IsFuller(num),
 	}
 }
 
@@ -1171,4 +1227,16 @@ func CheckETxChainID(ourID *big.Int, txID *big.Int) bool {
 		}
 	}
 	return false
+}
+
+// CurrentOntology is used to retrieve the MapContext of a given block.
+func (c *ChainConfig) CurrentOntology(number []*big.Int) ([]int, error) {
+	forkNumber := number[0]
+
+	switch {
+	case forkNumber.Cmp(c.FullerMapContext) >= 0: // Fuller = 0
+		return FullerOntology, nil
+	default:
+		return nil, errors.New("invalid block number passed to ontology")
+	}
 }

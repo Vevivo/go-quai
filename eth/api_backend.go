@@ -124,8 +124,8 @@ func (b *EthAPIBackend) AddExternalBlock(block *types.ExternalBlock) error {
 	return b.eth.blockchain.AddExternalBlock(block)
 }
 
-func (b *EthAPIBackend) ReOrgRollBack(header *types.Header) error {
-	return b.eth.blockchain.ReOrgRollBack(header)
+func (b *EthAPIBackend) ReOrgRollBack(header *types.Header, validDoms []*types.Header, invalidDoms []*types.Header) error {
+	return b.eth.blockchain.ReOrgRollBack(header, validDoms, invalidDoms)
 }
 
 func (b *EthAPIBackend) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error) {
@@ -217,7 +217,7 @@ func (b *EthAPIBackend) GetLogs(ctx context.Context, hash common.Hash) ([][]*typ
 	return logs, nil
 }
 
-func (b *EthAPIBackend) GetTd(ctx context.Context, hash common.Hash) *big.Int {
+func (b *EthAPIBackend) GetTd(ctx context.Context, hash common.Hash) []*big.Int {
 	return b.eth.blockchain.GetTdByHash(hash)
 }
 
@@ -245,6 +245,10 @@ func (b *EthAPIBackend) SubscribePendingBlockEvent(ch chan<- *types.Header) even
 
 func (b *EthAPIBackend) SubscribeReOrgEvent(ch chan<- core.ReOrgRollup) event.Subscription {
 	return b.eth.BlockChain().SubscribeReOrgEvent(ch)
+}
+
+func (b *EthAPIBackend) SubscribeMissingExternalBlockEvent(ch chan<- core.MissingExternalBlock) event.Subscription {
+	return b.eth.BlockChain().SubscribeMissingExternalBlockEvent(ch)
 }
 
 func (b *EthAPIBackend) SubscribeChainEvent(ch chan<- core.ChainEvent) event.Subscription {

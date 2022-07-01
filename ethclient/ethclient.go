@@ -374,14 +374,7 @@ func (ec *Client) TransactionReceipt(ctx context.Context, txHash common.Hash) (*
 
 // GetBlockReceipts returns the receipts of a block by block hash.
 func (ec *Client) GetBlockReceipts(ctx context.Context, blockHash common.Hash) (*types.ReceiptBlock, error) {
-	var r *types.ReceiptBlock
-	err := ec.c.CallContext(ctx, &r, "quai_getBlockWithReceiptsByHash", blockHash)
-	if err == nil {
-		if r == nil {
-			return nil, ethereum.NotFound
-		}
-	}
-	return r, err
+	return ec.getBlockWithReceipts(ctx, "quai_getBlockWithReceiptsByHash", blockHash)
 }
 
 type rpcProgress struct {
@@ -433,7 +426,11 @@ func (ec *Client) SubscribeReOrg(ctx context.Context, ch chan<- core.ReOrgRollup
 	return ec.c.EthSubscribe(ctx, ch, "reOrg")
 }
 
-// SubscribeReOrg subscribes to notifications about the reorg event.
+// SubscribeMissingExternalBlock subscribes to notifications about the missingExternalBlock event.
+func (ec *Client) SubscribeMissingExternalBlock(ctx context.Context, ch chan<- core.MissingExternalBlock) (ethereum.Subscription, error) {
+	return ec.c.EthSubscribe(ctx, ch, "missingExtBlock")
+}
+
 func (ec *Client) SubscribeChainUncleEvent(ctx context.Context, ch chan<- *types.Header) (ethereum.Subscription, error) {
 	return ec.c.EthSubscribe(ctx, ch, "uncleEvent")
 }
@@ -657,9 +654,11 @@ func (ec *Client) SendExternalBlock(ctx context.Context, block *types.Block, rec
 	return ec.c.CallContext(ctx, nil, "quai_sendExternalBlock", data)
 }
 
-// SendReorgData sends thre reorg data to the node to rollup and update the chain
-func (ec *Client) SendReOrgData(ctx context.Context, header *types.Header) error {
-	data, err := ethapi.RPCMarshalReOrgData(header)
+// header: header in which the intended chain is to roll back to.
+// newHeaders: potentially now valid dominant headers to take out of nonCanonDom db.
+// oldHeaders: invalid dominant headers to insert into nonCanonDom db.
+func (ec *Client) SendReOrgData(ctx context.Context, header *types.Header, newHeaders []*types.Header, oldHeaders []*types.Header) error {
+	data, err := ethapi.RPCMarshalReOrgData(header, newHeaders, oldHeaders)
 	if err != nil {
 		return err
 	}

@@ -120,7 +120,7 @@ func (b *LesApiBackend) AddExternalBlock(block *types.ExternalBlock) error {
 	return errors.New("light client does not support external block caching.")
 }
 
-func (b *LesApiBackend) ReOrgRollBack(header *types.Header) error {
+func (b *LesApiBackend) ReOrgRollBack(header *types.Header, validHeaders []*types.Header, invalidHeaders []*types.Header) error {
 	return errors.New("light client does not support reorg.")
 }
 
@@ -190,7 +190,7 @@ func (b *LesApiBackend) GetLogs(ctx context.Context, hash common.Hash) ([][]*typ
 	return nil, nil
 }
 
-func (b *LesApiBackend) GetTd(ctx context.Context, hash common.Hash) *big.Int {
+func (b *LesApiBackend) GetTd(ctx context.Context, hash common.Hash) []*big.Int {
 	if number := rawdb.ReadHeaderNumber(b.eth.chainDb, hash); number != nil {
 		return b.eth.blockchain.GetTdOdr(ctx, hash, *number)
 	}
@@ -277,6 +277,13 @@ func (b *LesApiBackend) SubscribePendingBlockEvent(ch chan<- *types.Header) even
 }
 
 func (b *LesApiBackend) SubscribeReOrgEvent(ch chan<- core.ReOrgRollup) event.Subscription {
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		<-quit
+		return nil
+	})
+}
+
+func (b *LesApiBackend) SubscribeMissingExternalBlockEvent(ch chan<- core.MissingExternalBlock) event.Subscription {
 	return event.NewSubscription(func(quit <-chan struct{}) error {
 		<-quit
 		return nil
