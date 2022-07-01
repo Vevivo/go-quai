@@ -143,8 +143,7 @@ func (tc *testChain) generate(n int, seed byte, parent *types.Block, heavy bool)
 	})
 
 	// Convert the block-chain into a hash-chain and header/block maps
-	//td := new(big.Int).Set(tc.td(parent.Hash()))
-	td := new(big.Int)
+	td := new(big.Int).Set(tc.td(parent.Hash()))
 	for i, b := range blocks {
 		td := td.Add(td, b.Difficulty())
 		hash := b.Hash()

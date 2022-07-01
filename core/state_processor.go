@@ -172,12 +172,9 @@ func applyTransaction(msg types.Message, config *params.ChainConfig, bc ChainCon
 
 	// Validate Address Operability
 	idRange := config.ChainIDRange()
-	if idRange[0]+1 < idRange[0] || idRange[1]-1 > idRange[1] {
+	if int(msg.From().Bytes()[0]) < idRange[0] || int(msg.From().Bytes()[0]) > idRange[1] {
 		return nil, ErrSenderInoperable
 	}
-	/*if int(msg.From().Bytes()[0]) < idRange[0] || int(msg.From().Bytes()[0]) > idRange[1] {
-		return nil, ErrSenderInoperable
-	}*/
 
 	// Create a new context to be used in the EVM environment.
 	txContext := NewEVMTxContext(msg)
